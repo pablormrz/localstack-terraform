@@ -1,0 +1,27 @@
+version: "3.8"
+
+services:
+  localstack:
+    container_name: localstack_main # Puedes cambiarlo a 'localstack' si prefieres.
+    image: localstack/localstack:latest # Usamos :latest explícitamente
+    ports:
+      - "127.0.0.1:4566:4566"
+      - "127.0.0.1:4510-4559:4510-4559"
+    environment:
+      - DEBUG=1 # Desde tu archivo
+      # Todos los servicios que queremos habilitar explícitamente
+      - SERVICES=acm,apigateway,cloudformation,cloudwatch,dynamodb,ec2,es,firehose,iam,kinesis,kms,lambda,logs,rds,redshift,route53,s3,secretsmanager,ses,sns,sqs,ssm,stepfunctions,sts
+      - DEFAULT_REGION=us-east-1 # Mantener para consistencia con Terraform
+      - EDGE_PORT=4566 # Mantener para consistencia
+      - AWS_ACCESS_KEY_ID=test # Mantener para consistencia
+      - AWS_SECRET_ACCESS_KEY=test # Mantener para consistencia
+    volumes:
+      # Usamos tu volumen de persistencia que es más robusto y alinea con /var/lib/localstack
+      - "${LOCALSTACK_VOLUME_DIR:-./localstack-data}:/var/lib/localstack"
+      - "/var/run/docker.sock:/var/run/docker.sock"
+    healthcheck: # Mantenemos el healthcheck para monitoreo
+      test: ["CMD", "awslocal", "s3", "ls"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 20s

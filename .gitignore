@@ -1,0 +1,20 @@
+# Terraform generated files
+.terraform/
+*.tfplan
+*.tfstate
+*.tfstate.backup
+.terraform.lock.hcl
+
+# LocalStack data volume
+.localstack/
+localstack-data/ # Si usaste la nueva configuración de volumen en docker-compose.yml
+
+# Python artifacts
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# OS generated files
+.DS_Store
+Thumbs.db
