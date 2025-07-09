@@ -162,7 +162,61 @@ resource "aws_lambda_function" "s3_upload_function" {
 resource "aws_api_gateway_rest_api" "s3_list_api" {
   name        = "S3OperationsAPI"
   description = "API para operaciones en un bucket S3"
+
+  # NUEVO: Configuración de CORS
+  body = jsonencode({
+    swagger = "2.0",
+    info = {
+      title   = "S3OperationsAPI",
+      version = "1.0"
+    },
+    schemes = ["http"], # LocalStack usa HTTP
+    paths = {
+      "/*/{proxy+}" = { # Aplica a todas las rutas bajo la API
+        options = { # Manejo de la solicitud OPTIONS de CORS (preflight request)
+          consumes = [
+            "application/json"
+          ],
+          produces = [
+            "application/json"
+          ],
+          responses = {
+            "200" = {
+              headers = {
+                "Access-Control-Allow-Origin" = {
+                  type = "string"
+                },
+                "Access-Control-Allow-Methods" = {
+                  type = "string"
+                },
+                "Access-Control-Allow-Headers" = {
+                  type = "string"
+                }
+              }
+            }
+          },
+          "x-amazon-apigateway-integration" = {
+            type                     = "MOCK", # Tipo de integración MOCK para OPTIONS
+            requestTemplates         = {
+              "application/json" = "{ \"statusCode\": 200 }"
+            },
+            responses = {
+              "default" = {
+                statusCode = "200",
+                responseParameters = {
+                  "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
+                  "method.response.header.Access-Control-Allow-Methods" = "'DELETE,GET,HEAD,OPTIONS,PATCH,POST,PUT'", # Métodos que permites
+                  "method.response.header.Access-Control-Allow-Origin"  = "'*'" # Para desarrollo, '*' está bien. En producción: "'http://localhost:3000'"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  })
 }
+
 
 # Recurso de API Gateway (ruta /files)
 resource "aws_api_gateway_resource" "files_resource" {
